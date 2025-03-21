@@ -2,11 +2,6 @@
 #include "ChatController.h"
 #include "../GameUI/ChatWindow.h"
 #include "GameFramework/PlayerState.h"
-AChatGameMode::AChatGameMode()
-{
-	//bNetLoadOnClient = true;
-	bReplicates = true;
-}
 
 //	검증하는 기능이다.
 //bool AChatGameMode::ReceiveClientMessage_Validate(APlayerController* Sender, const FString& Message)
@@ -72,4 +67,130 @@ AChatGameMode::AChatGameMode()
 void AChatGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	for (uint32 i = 0; i < 10; ++i)
+	{
+		NumArray.Add(i);
+	}
+
+	int32 Half = NumArray.Num() / 2;
+
+	for (uint32 i = 0; i < 100; ++i)
+	{
+		int32 Start = FMath::RandRange(0, Half-1);
+		int32 End = FMath::RandRange(Half, NumArray.Num()-1);
+
+		NumArray.Swap(Start, End);
+	}
+
+	SystemAnswer.Add(NumArray[0]);
+	SystemAnswer.Add(NumArray[1]);
+	SystemAnswer.Add(NumArray[2]);
+}
+
+FBaseballResult AChatGameMode::ServerBaseballResult(const TArray<int32>& Answer)
+{
+	FBaseballResult Result = {};
+
+	for (int32 i = 0; i < 3; ++i)
+	{
+		for (int32 j = 0; j < 3; ++j)
+		{
+			if (Answer[i] == SystemAnswer[j])
+			{
+				if (i == j)
+				{
+					Result.StrikeCount++;
+				}
+				else
+				{
+					Result.BallCount++;
+				}
+				break; // 같은 숫자를 찾았으면 더 찾을 필요 없음
+			}
+		}
+	}
+
+	if (Result.BallCount == 0 && Result.StrikeCount == 0)
+	{
+		Result.Out = true;
+	}
+	return Result;
+}
+
+bool AChatGameMode::AnswerCheck(const FText& Answer)
+{
+	FString AnswerString = Answer.ToString();
+
+	if (AnswerString.Len() != 4)
+	{
+		return false;
+	}
+
+	if (AnswerString[0] != TEXT('/'))
+	{
+		return false;
+	}
+
+	FString NumberPart = AnswerString.Mid(1); 
+	if (NumberPart.Len() != 3) 
+	{
+		return false;
+	}
+	if (NumberPart[0] == NumberPart[1] || 
+		NumberPart[1] == NumberPart[2] || 
+		NumberPart[0] == NumberPart[2])
+	{
+		return false; 
+	}
+	for (int32 i = 0; i < 3; ++i)
+	{
+		if (!FChar::IsDigit(NumberPart[i]))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+TArray<int32> AChatGameMode::SplitAnswer(const FText& Answer)
+{
+	FString AnswerString = Answer.ToString();
+
+	TArray<int32> Result;
+	if (AnswerCheck(Answer))
+	{
+		Result.Add(FChar::ConvertCharDigitToInt(AnswerString[1]));
+		Result.Add(FChar::ConvertCharDigitToInt(AnswerString[2]));
+		Result.Add(FChar::ConvertCharDigitToInt(AnswerString[3]));
+	}
+	return Result;
+}
+
+FBaseballResult AChatGameMode::SendAnswer(const FText& Answer)
+{
+	FBaseballResult Result;
+
+	if (AnswerCheck(Answer))
+	{
+		Result = ServerBaseballResult(SplitAnswer(Answer));
+	}
+	else
+	{
+		Result.Out = true;
+	}
+	return Result;
+}
+
+FText AChatGameMode::MakeMessage(const FBaseballResult& Result)
+{
+	if (Result.Out)
+		return FText::FromString(FString(TEXT("<Server> : 아이고~ 아쉬워라 아웃입니다.")));
+
+	return FText::Format(
+		FText::FromString(TEXT("<Server> : Strike: {0}, Ball: {1} 입니다.")),
+		Result.StrikeCount,
+		Result.BallCount
+	);
 }
