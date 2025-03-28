@@ -86,6 +86,8 @@ void AChatGameMode::BeginPlay()
 	SystemAnswer.Add(NumArray[0]);
 	SystemAnswer.Add(NumArray[1]);
 	SystemAnswer.Add(NumArray[2]);
+
+	UE_LOG(LogTemp, Warning, TEXT("ServerAnswer : %d%d%d"), SystemAnswer[0], SystemAnswer[1], SystemAnswer[2]);
 }
 
 FBaseballResult AChatGameMode::ServerBaseballResult(const TArray<int32>& Answer)
