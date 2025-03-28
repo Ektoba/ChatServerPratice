@@ -8,8 +8,11 @@ USTRUCT(BlueprintType)
 struct FBaseballResult
 {
 	GENERATED_BODY()
+	UPROPERTY(BlueprintReadOnly)
 	int32 StrikeCount;
+	UPROPERTY(BlueprintReadOnly)
 	int32 BallCount;
+	UPROPERTY(BlueprintReadOnly)
 	bool Out;
 };
 UCLASS()

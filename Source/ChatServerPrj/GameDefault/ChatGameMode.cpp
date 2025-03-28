@@ -68,7 +68,7 @@ void AChatGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (uint32 i = 0; i < 10; ++i)
+	for (uint32 i = 1; i <= 9; ++i)
 	{
 		NumArray.Add(i);
 	}

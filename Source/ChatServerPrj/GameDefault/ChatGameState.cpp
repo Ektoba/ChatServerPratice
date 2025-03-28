@@ -17,4 +17,5 @@ void AChatGameState::BroadcastMessage_Implementation(const FString& SenderName, 
 void AChatGameState::BeginPlay()
 {
 	Super::BeginPlay();
+	
 }
